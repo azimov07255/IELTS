@@ -45,6 +45,17 @@ A.pushoff = async () => {
 A.pushtest = async () => { try { const reg = await navigator.serviceWorker.ready; await reg.showNotification('IELTS · BY AZIMOV', { body: 'Eslatma ishlayapti ✅ Har kuni shu vaqtda xabar olasiz.', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: 'ielts-test' }); say('Bildirishnoma yuborildi.'); } catch (e) { say('Sinab bo‘lmadi: ' + errMsg(e)); } };
 A.closeSheet = () => IE.closeSheet();
 
+/* Eski manzildan (…/Quiz/ielts/) ko‘chgach: eslatma yoqilgan bo‘lsa (ruxsat shu domen uchun saqlanadi), yangi service worker uchun obunani jimgina tiklaydi. */
+IE.pushResume = async () => {
+  try {
+    const s = st(); if (!s.on || !sup() || Notification.permission !== 'granted' || !window.SB || !SB.session()) return;
+    const reg = await navigator.serviceWorker.ready; if (await reg.pushManager.getSubscription()) return;
+    const k = await SB.fn('ielts-push', { action: 'key' }), sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(k.key) });
+    await SB.fn('ielts-push', { action: 'sub', sub: sub.toJSON(), hhmm: s.hhmm, tz: -new Date().getTimezoneOffset() });
+  } catch (e) { /* keyingi ochilishda */ }
+};
+setTimeout(() => { if (IE.D && IE.D.access) IE.pushResume(); }, 6000);
+
 /* Ilovani o‘rnatish (kompyuter/telefon): brauzer “beforeinstallprompt” bergan bo‘lsa ko‘rsatiladi */
 let ip = null;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); ip = e; if ((IE.curRoute || '') === 'me') IE.draw(false); });
